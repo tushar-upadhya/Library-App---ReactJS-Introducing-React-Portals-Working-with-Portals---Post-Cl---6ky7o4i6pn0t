@@ -1,50 +1,90 @@
-let book = [
+const connection = require('./connector')
+const data = require('./data');
+const bookData = data.book;
+const userData = data.user;
 
-    {
-        title: "Joe Biden: American DreamerJoe Biden:  Osnos",
-        description: "description10",
-        genre: "biography",
-        author: "Evan OsnosEvan",
-        rating: 7,
-        review: "reviewBeautifully written . . . A light, enjoyable read . . . Osnos gives you a taste of what could be to come under a Biden presidency . He has a delightful turn of phrase 10",
-        FavQuotes: "FavQuotes10",
-        section: '0'
 
-    },
-    {
-        title: "Dharma: Decoding the Epics for a Meaningful Life",
-        description: "desStories can be both entertaining and educative.cription11",
-        genre: "history",
-        author: "Amish",
-        rating: 9,
-        review: "I'll be honest - I did enjoy reading the book initially. It seemed like a good mix of storytelling and touching upon the core subject it is based on - Dharma - and its many facets.",
-        FavQuotes: "It's better to read 1 book 10 times than reading 10 books at once",
-        section: '2'
+const initialize = async () => {
 
-    },
-    {
-        title: "The Last Resort",
-        description: "When Amelia is invited to an all-expenses-paid retreat on a private island, the mysterious offer is too good to refuse. ",
-        genre: "mystery",
-        author: "sushi holiday",
-        rating: 6,
-        review: "A twisty thriller that keeps you guessing until the last page. --Candis",
-        FavQuotes: "Oh dear book, how could you do this to me?",
-        section: '1'
+    await
+        new Promise((res, rej) => {
+            connection.query("DROP TABLE IF EXISTS Books;",
+                (err, result) => {
+                    if (err) rej(err);
+                    else res();
+                });
+        })
 
-    },
-];
-let user = [
-    {
-        name: "Hitesh",
-        toRead: 'Dharma: Decoding the Epics for a Meaningful Life,The Last Resort',
-        isRead: 'Joe Biden: American DreamerJoe Biden:  Osnos'
-    },
-    {
-        name: "Dinesh",
-        toRead: 'Joe Biden: American DreamerJoe Biden:  Osnos',
-        isRead: 'Dharma: Decoding the Epics for a Meaningful Life'
+    await
+        new Promise((res, rej) => {
+            connection.query("CREATE TABLE Books (id INT AUTO_INCREMENT PRIMARY KEY,title VARCHAR(255) NOT NULL,description VARCHAR(255),genre VARCHAR(255), author VARCHAR(255), rating INT, review VARCHAR(255), FavQuotes VARCHAR(255), section ENUM('0' ,'1', '2' ));",
+                (err, result) => {
+                    if (err) {
+                        rej(err)
+                        // console.log(err)
+                    }
+                    else {
+                        res();
+                    }
+                });
+        })
+    for (let a in bookData) {
+        let element = bookData[a];
+        await new Promise((res, rej) => {
+            connection.query("INSERT INTO Books (title, description, genre, author, rating, review, FavQuotes, section) VALUES (?,?,?,?,?,?,?,?);", [element.title, element.description, element.genre, element.author, element.rating, element.review, element.FavQuotes, element.section], (err, result) => {
+                if (err) {
+                    rej(err)
+                    // console.log(err)
+                }
+                else {
+                    res();
+                }
+            })
+        });
     }
-]
 
-module.exports = { book, user };
+    await
+        new Promise((res, rej) => {
+            connection.query("DROP TABLE IF EXISTS user;",
+                (err, result) => {
+                    if (err) rej(err);
+                    else res();
+                });
+        })
+
+    await
+        new Promise((res, rej) => {
+            connection.query("CREATE TABLE user (id varchar(100) PRIMARY KEY,isRead VARCHAR(1000),toRead varchar(1000)); ",
+                (err, result) => {
+                    if (err) {
+                        rej(err)
+                        // console.log(err)
+                    }
+                    else {
+                        res();
+                    }
+                });
+        })
+    for (let a in userData) {
+        let element = userData[a];
+        await new Promise((res, rej) => {
+            connection.query("INSERT INTO user (id, isRead, toRead) VALUES (?,?,?);", [element.name, element.isRead, element.toRead], (err, result) => {
+                if (err) {
+                    rej(err)
+                    // console.log(err)
+                }
+                else {
+                    res();
+                }
+            })
+        });
+
+    }
+    connection.end(() => {
+        console.log('Connection Closed')
+    })
+}
+initialize();
+
+
+module.exports = connection;
